@@ -1,59 +1,85 @@
+import Cart from '../Models/CartModel.js'
 
-import Cart from "../Models/CartModel.js";
 import Product from "../Models/ProductModel.js";
 
-// Add item to cart
-export const addToCart = async (req, res) => {
-  const { productId, quantity } = req.body;
-console.log(req.user);
-console.log(req.body);
 
-const userId = req.user.id;
+export const addToCart = async (req, res) => {
+  const { ProductId, quantity, pricePerDay, totalCost, restaurantId } = req.body;
+  const userId = req.user.id;
+  console.log(`res id`, restaurantId);
+  
+ 
+  if (!restaurantId) {
+    return res.status(400).json({ message: "restaurantId is required in the request body" });
+  }
+
   try {
-    const product = await Product.findById(productId);
+    // Check if product exists
+    const product = await Product.findById(ProductId);
     if (!product) {
       return res.status(404).json({ message: "Product not found!" });
     }
 
-    const pricePerDay = product.priceperday;
-    const totalCost = pricePerDay * quantity;
-
+    // Check if user already has a cart
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      // Create a new cart if it doesn't exist
+      // Create new cart
       cart = new Cart({
         userId,
-        Product: [{ ProductId: productId, quantity, pricePerDay, totalCost }],
+        Product: [
+          {
+            ProductId,
+            quantity,
+            pricePerDay,
+            totalCost,
+            restaurantId,
+          },
+        ],
         totalPrice: totalCost,
       });
     } else {
-      // Check if product already exists in the cart
+      // Check if product already exists in cart
       const existingProductIndex = cart.Product.findIndex(
-        (item) => item.ProductId.toString() === productId
+        (item) => item.ProductId.toString() === ProductId.toString()
       );
 
       if (existingProductIndex > -1) {
-        // Update quantity and totalCost if product exists
+        // Update quantity, total cost, and restaurantId (if missing)
         cart.Product[existingProductIndex].quantity += quantity;
         cart.Product[existingProductIndex].totalCost += totalCost;
+
+        if (!cart.Product[existingProductIndex].restaurantId) {
+          cart.Product[existingProductIndex].restaurantId = restaurantId;
+        }
       } else {
         // Add new product to cart
-        cart.Product.push({ ProductId: productId, quantity, pricePerDay, totalCost });
+        cart.Product.push({
+          ProductId,
+          quantity,
+          pricePerDay,
+          totalCost,
+          restaurantId,
+        });
       }
 
-      // Update total price of the cart
+      // Update total cart price
       cart.totalPrice += totalCost;
     }
 
     await cart.save();
-    res.status(200).json(cart);
+    res.status(200).json({ message: "Item added to cart", data: cart });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: error.message || "Internal Server Error" });
   }
 };
 
-// Get cart by userId
+
+
+
+
 export const getCartByUserId = async (req, res) => {
   
   const userId = req.user.id;
@@ -150,8 +176,8 @@ export const removeCartItem = async (req, res) => {
 
 // Clear the cart
 export const clearCart = async (req, res) => {
-  const { userId } = req.params;
-
+  
+  const userId = req.user.id;
   try {
     await Cart.deleteOne({ userId });
     res.status(200).json({ message: "Cart cleared successfully!" });

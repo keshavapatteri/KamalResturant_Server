@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import Product from "../Models/ProductModel.js";
 // Generate JWT Token
 const generateToken = (id) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -145,3 +146,52 @@ export const Profile = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+export const getProductId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Product ID:", id);
+
+    // Find product by ID and populate restaurant name
+    const product = await Product.findById(id).populate({
+      path: "restaurantId",
+      select: "restaurantname", // Only get restaurant name
+    });
+console.log(product);
+
+    // Check if product exists
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Console log the restaurant name
+    console.log("Restaurant Name:", product.restaurantId?.restaurantname);
+
+    return res.status(200).json({
+      message: "Product fetched successfully",
+      data: product,
+    });
+  } catch (error) {
+    console.error("Error fetching product by ID:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+//Check User
+
+export const checkUser=async(req,res,next)=>{
+  
+  const user = req.user.id;
+
+  console.log(user);
+  
+  if(!user){
+      return res.status(401).json({success:false,message:'User not authenticated'})
+      }
+  
+res.json({success:true,message:'User is authenticated'})
+
+  
+          };

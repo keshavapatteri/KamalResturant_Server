@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllUser, loginUser, logoutUser, Profile, registerUser } from '../Controller/UserController.js';
+import { checkUser, getAllUser, getProductId, loginUser, logoutUser, Profile, registerUser } from '../Controller/UserController.js';
 import { getAllProducts} from '../Controller/ProductController.js';
 import { verifyUserToken } from '../Middleware/AuthMiddleware.js';
 
@@ -21,6 +21,12 @@ UserRouter.use('/getall',getAllUser)
 UserRouter.get('/getAllProducts',getAllProducts)
 
 UserRouter.get('/profile',verifyUserToken,Profile)
+
+UserRouter.get('/productByid/:id',getProductId)  //verifyUserToken,
+
+UserRouter.get('/checkUser',verifyUserToken,checkUser) 
+
+ 
 
 export default UserRouter; 
 

@@ -5,49 +5,130 @@ import multer from "multer";
 //Product side ----->
 
 //Add Product
+// export const createProduct = async (req, res) => {
+//   try {
+//     const { title, description, price, category, mrp } = req.body;
+//     const restaurantId = req.Rest.id;
+
+//     console.log("Incoming Product Data:", req.body);
+//     console.log("Restaurant ID:", restaurantId);
+
+//     // Basic field validation
+//     if (!title || !description || !price || !category || !mrp || !restaurantId) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     // Optional: validate category against allowed values
+//     const validCategories = [
+//       "Indian",
+//       "Fast Food",
+//       "Healthy",
+//       "Continental",
+//       "Mexican",
+//       "Asian",
+//       "Salad",
+//       "Pizza",
+//       "Soup",
+//     ];
+//     if (!validCategories.includes(category)) {
+//       return res.status(400).json({ message: "Invalid category" });
+//     }
+
+//     // Handle image upload
+//     let imageUrl = "";
+//     if (req.file) {
+//       try {
+//         console.log("Uploading image to Cloudinary...");
+//         const result = await cloudinaryInstance.uploader.upload(req.file.path, {
+//           folder: "products",
+//         });
+//         imageUrl = result.secure_url;
+//       } catch (uploadError) {
+//         console.error("Cloudinary upload error:", uploadError);
+//         return res.status(500).json({ message: "Image upload failed" });
+//       }
+//     } else {
+//       return res.status(400).json({ message: "Product image is required" });
+//     }
+
+//     // Create and save new product
+//     const newProduct = new Product({
+//       restaurantId,
+//       title,
+//       description,
+//       price: Number(price),
+//       category,
+//       mrp: Number(mrp),
+//       image: imageUrl,
+//     });
+
+//     await newProduct.save();
+
+//     return res.status(201).json({
+//       message: "Product created successfully",
+//       data: newProduct,
+//     });
+//   } catch (error) {
+//     console.error("Error creating product:", error);
+//     return res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
 
 export const createProduct = async (req, res) => {
-    try {
-      const { title, description, price, category, mrp, restaurantId } = req.body;
-  console.log(req.body);
-  
-      // Validate required fields
-      if (!title || !description || !price || !category || !mrp || ! restaurantId) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-  
-      // Check if image file is uploaded
-      let imageUrl = "";
-      if (req.file) {
-        console.log("Uploading Image to Cloudinary...");
-        const result = await cloudinaryInstance.uploader.upload(req.file.path, {
-          folder: "products", // Upload to "products" folder
-        });
-        imageUrl = result.secure_url; // Store the uploaded image URL
-      }
-  
-      // Create and save new product
-      const newProduct = new Product({
-        restaurantId,
-        title,
-        description,
-        price,
-        category,
-        mrp,
-        image: imageUrl,
-      });
-  
-      await newProduct.save();
-  
-      return res.status(201).json({
-        message: "Product created successfully",
-        data: newProduct,
-      });
-    } catch (error) {
-      console.error("Error creating product:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { title, description, price, category, mrp, } = req.body;
+    const restaurantId  = req.Rest.id;
+
+    console.log("Incoming Product Data:", req.body);
+console.log(restaurantId);
+
+    // Validate required fields
+    if (!title || !description || !price || !category || !mrp || !restaurantId ) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-  };
+
+    let imageUrl = "";
+
+    // Handle image upload if present
+    if (req.file) {
+      console.log("Uploading image to Cloudinary...");
+      try {
+        const result = await cloudinaryInstance.uploader.upload(req.file.path, {
+          folder: "products",
+        });
+        imageUrl = result.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({ message: "Image upload failed" });
+      }
+    } else {
+      return res.status(400).json({ message: "Product image is required" });
+    }
+
+    // Create new product
+    const newProduct = new Product({
+      
+      restaurantId,
+      title,
+      description,
+      price: Number(price),
+      category,
+      mrp: Number(mrp),
+      image: imageUrl,
+    });
+
+    await newProduct.save();
+
+    return res.status(201).json({
+      message: "Product created successfully",
+      data: newProduct,
+    });
+  } catch (error) {
+    console.error("Error creating product:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
  //Edit Product
 
@@ -172,6 +253,40 @@ export const getProductById = async (req, res) => {
   } catch (error) {
     console.error("Error fetching product by ID:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+export const getAllCategories = async (req, res) => {
+  try {
+    const { categoryName } = req.params;
+
+    // Case-insensitive match for category
+    const categories = await Product.find({
+      category: { $regex: new RegExp(`^${categoryName}$`, "i") },
+    });
+
+    console.log("Found Categories in DB:", categories);
+
+    if (!categories || categories.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No products found in category '${categoryName}'.`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      products: categories,
+    });
+  } catch (error) {
+    console.error("Error fetching categories:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 

@@ -9,11 +9,11 @@ import { verifyUserToken } from '../Middleware/AuthMiddleware.js';
 
  const CartRouter = express.Router();
 
-CartRouter.post("/add",verifyUserToken,addToCart);
+CartRouter.post("/addToCart",verifyUserToken,addToCart);
 CartRouter.get("/productuserid",verifyUserToken, getCartByUserId);
 CartRouter.put("/update",verifyUserToken,updateCartItem);
 CartRouter.delete("/remove",verifyUserToken, removeCartItem);
-CartRouter.delete("/clear/:userId", clearCart);
+CartRouter.delete("/clearCart",verifyUserToken, clearCart);
 
 CartRouter.get("/getAllCarts",getAllCarts);
 

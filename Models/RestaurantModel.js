@@ -17,7 +17,11 @@ const RestaurantSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Number is required"]
     },
-
+// restaurantId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Restaurant",
+//       //required: [true, "Restaurant ID is required"],
+//     },
 
     email: {
       type: String,

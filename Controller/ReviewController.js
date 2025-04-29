@@ -1,27 +1,107 @@
 import Review from "../Models/ReviewModel.js";
 
 
-// Create a new review
+
 export const createReview = async (req, res) => {
+
   try {
-    const { userId, username, reviewText, rating } = req.body;
+    // Check authentication
+    if (!req.user) {
+      return res.status(401).json({ message: 'User is not authenticated' });
+    }
+
+    const {  orderId, reviewText, rating } = req.body;
+    const userId = req.user.id;
+console.log(userId );
+
+    // Debug incoming data
+    console.log('Review Body:', req.body);
+
+    // Basic field validation
+    if ( !orderId || !reviewText || !rating) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Create review
     const newReview = new Review({
       userId,
-      username,
+      orderId,
       reviewText,
       rating,
     });
+
+    // Save to database
     await newReview.save();
-    res.status(201).json({ message: "Review added successfully", newReview });
+
+    // Populate user info for response
+    const populatedReview = await Review.findById(newReview._id).populate(
+      'userId',
+      'email'
+    );
+
+    // Success response
+    res.status(201).json({
+      message: 'Review added successfully',
+      review: populatedReview,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Error adding review", error });
+    console.error('Error creating review:', error);
+    res.status(500).json({
+      message: 'Error adding review',
+      error: error.message,
+    });
   }
 };
+
+
+
+// export const createReview = async (req, res) => {
+//   try {
+//     if (!req.user) {
+//       return res.status(401).json({ message: 'User is not authenticated' });
+//     }
+
+//     const { orderId, productId, restaurantId, reviewText, rating } = req.body;
+//     const userId = req.user.id;
+
+//     if (!orderId || !productId || !restaurantId || !reviewText || !rating) {
+//       return res.status(400).json({ message: 'All fields are required' });
+//     }
+
+//     const newReview = new Review({
+//       userId,
+//       orderId,
+//       productId,
+//       restaurantId,
+//       reviewText,
+//       rating,
+//     });
+
+//     await newReview.save();
+
+//     const populatedReview = await Review.findById(newReview._id)
+//       .populate('userId', 'email')
+//       .populate('productId', 'title image')
+//       .populate('restaurantId', 'name');
+
+//     res.status(201).json({
+//       message: 'Review added successfully',
+//       review: populatedReview,
+//     });
+
+//   } catch (error) {
+//     console.error('Error creating review:', error);
+//     res.status(500).json({ message: 'Error adding review', error: error.message });
+//   }
+// };
+
+
 
 // Get all reviews
 export const getAllReviews = async (req, res) => {
   try {
-    const reviews = await Review.find().sort({ createdAt: -1 });
+    const reviews = await Review.find().sort({ createdAt: -1 }).populate("userId");
     res.status(200).json(reviews);
   } catch (error) {
     res.status(500).json({ message: "Error fetching reviews", error });

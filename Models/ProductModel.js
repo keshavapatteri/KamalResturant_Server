@@ -1,14 +1,22 @@
+
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    restaurantId : {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-       ref: "Restaurant"
-              },
-
-
-
+      ref: "User",
+     
+    },
+    restaurantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Restaurant",
+      required: [true, "Restaurant ID is required"],
+    },
+    restaurantname: {
+      type: String,
+      // required: [true, "name is required"]
+    },
     title: {
       type: String,
       required: [true, "Title is required"],
@@ -27,7 +35,7 @@ const productSchema = new mongoose.Schema(
     },
     mrp: {
       type: Number,
-      required: [true, "Stock is required"],
+      required: [true, "MRP is required"],
     },
     image: {
       type: String,

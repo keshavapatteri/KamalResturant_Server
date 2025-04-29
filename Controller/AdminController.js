@@ -6,6 +6,11 @@ import Product from "../Models/ProductModel.js";
 import { cloudinaryInstance } from "../Config/cloudinary.js";
 import { upload } from '../Config/multer.js';
 import Restaurant from "../Models/RestaurantModel.js";
+import Review from "../Models/ReviewModel.js";
+import { Category } from "../Models/CategoryModel.js";
+
+
+
 // Admin Signup Controller
 export const AdminSignup = async (req, res) => {
   const { email, password } = req.body;
@@ -49,43 +54,102 @@ const generateToken = (id) => {
   });
 };
 
-// Admin Login Controller
-export const AdminLogin = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // Check if admin exists
-    const admin = await Admin.findOne({ email });
-
-    // Check if admin exists and compare hashed password
-    if (admin && (await bcrypt.compare(password, admin.password))) {
-      // Generate and log the token
+ export const AdminLogin = async (req, res) => {
+    const { email, password } = req.body;
+    console.log('Login attempt:', req.body);
+  
+    try {
+      // Check if the user exists
+      const admin = await Admin.findOne({ email });
+  console.log(admin);
+  
+      if (!admin) {
+        return res.status(404).json({ msg: "admin not found" });
+      }
+  
+      // Compare entered password with hashed password in DB
+      const passwordMatch = await bcrypt.compare(password, admin.password);
+      if (!passwordMatch) {
+        return res.status(400).json({ msg: "Invalid credentials" });
+      }
+  
+      // Generate JWT token
       const token = generateToken(admin.id);
-
-      res.json({
+  // console.log(token);
+  
+       res.cookie('admintoken', token, { httpOnly: true, sameSite: 'None', secure: true });
+    
+      //  const restaurantId = req.Rest.id;
+      // Send successful login response
+      return res.status(200).json({
         _id: admin.id,
+        
         email: admin.email,
-        token: token,
+        token,
         message: "Login successful",
       });
-
-      // Log successful login
-      console.log(`Admin logged in successfully with email: ${email}`);
-    } else {
-      res.status(401).json({ message: "Invalid email or password" });
+  
+    } catch (error) {
+      console.error('Login Error:', error.message);
+      return res.status(500).json({ message: "Server error" });
     }
-  } catch (error) {
-    console.error("Error during admin login:", error);
-    res.status(500).json({ message: "Internal server error." });
-  }
-};
+  };
+  
 
+
+
+// Admin Login Controller
+// export const AdminLogin = async (req, res) => {
+//   const { email, password } = req.body;
+// console.log(req.body);
+
+//   try {
+//     // Check if admin exists
+//     const admin = await Admin.findOne({ email });
+
+//     // Log the admin data (for debugging purposes)
+//     console.log('Admin from DB:', admin);
+
+//     if (admin) {
+//       // Log the hashed password from the database and the submitted password
+//       console.log('Database password (hashed):', admin.password);
+//       console.log('Submitted password:', password);
+
+//       // Check if admin exists and compare hashed password
+//       const isPasswordValid = await bcrypt.compare(password, admin.password);
+//       console.log('Password match:', isPasswordValid); // Log the result of password comparison
+
+//       if (isPasswordValid) {
+//         // Generate and log the token
+//         const token = generateToken(admin.id);
+//         console.log('Generated token:', token);
+
+//         res.json({
+//           _id: admin.id,
+//           email: admin.email,
+//           token: token,
+//           message: "Login successful",
+//         });
+
+//         // Log successful login
+//         console.log(`Admin logged in successfully with email: ${email}`);
+//       } else {
+//         res.status(401).json({ message: "Invalid email or password" });
+//       }
+//     } else {
+//       res.status(401).json({ message: "Invalid email or password" });
+//     }
+//   } catch (error) {
+//     console.error("Error during admin login:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
 //AdminLogut
 
 export const AdminLogut = async (req,res) => {
     try {
         // Clear the token (if using cookies)
-        res.cookie("token", "", {
+        res.cookie("admintoken", "", {
           httpOnly: true,
           expires: new Date(0), // Expire the token immediately
         });
@@ -402,3 +466,181 @@ export const getProductById = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+  //Restaurant By Id
+
+  export const deleteRestaurantById = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      // Check if restaurant exists
+      const restaurant = await Restaurant.findById(id);
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+  
+      // Delete restaurant
+      await Restaurant.findByIdAndDelete(id);
+  
+      return res.status(200).json({ message: "Restaurant deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting restaurant:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+
+
+  export const AllReviews = async (req, res) => {
+    try {
+      const reviews = await Review.find().sort({ createdAt: -1 }).populate("userId");
+      res.status(200).json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching reviews", error });
+    }
+  };
+
+
+  export const deletesReview = async (req, res) => {
+    try {
+      const deletedReview = await Review.findByIdAndDelete(req.params.id);
+      if (!deletedReview) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+      res.status(200).json({ message: "Review deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting review", error });
+    }
+  };
+
+
+  export const addCategory = async (req, res) => {
+    try {
+      const { name } = req.body;
+  
+      if (!req.file) {
+        return res.status(400).json({ error: 'Image is required' });
+      }
+  
+      const result = await cloudinaryInstance.uploader.upload(req.file.path, {
+        folder: 'categories',
+      });
+      
+      const newCategory = new Category({
+        name,
+        imageUrl: result.secure_url,
+      });
+  
+      await newCategory.save();
+  
+      res.status(201).json({ message: 'Category added successfully', category: newCategory });
+  
+    } catch (error) {
+      console.error('Add Category Error:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+  };
+
+
+
+  
+
+  export const AllCategories = async (req, res) => {
+    try {
+      const Categorys = await Category.find()
+      res.status(200).json(Categorys);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching Categorys", error });
+    }
+  };
+
+
+  export const deleteCategory = async (req, res) => {
+    try {
+      // Get the category ID from the request parameters
+      const { id } = req.params;
+  
+      // Find and delete the category by ID
+      const category = await Category.findByIdAndDelete(id);
+  
+      // If the category is not found
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+  
+      // Send a success response
+      res.status(200).json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Delete Category Error:", error);
+      res.status(500).json({ message: "Error deleting category", error });
+    }
+  };
+  
+
+  export const getProductCount = async (req, res) => {
+    try {
+      const count = await Product.countDocuments(); // count all documents in the collection
+  
+      return res.status(200).json({
+        message: "Total product count fetched successfully",
+        totalCount: count,
+      });
+    } catch (error) {
+      console.error("Error fetching product count:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+
+
+  //user count
+
+  export const getUserCount = async (req, res) => {
+    try {
+      const count = await User.countDocuments(); // count all documents in the collection
+  
+      return res.status(200).json({
+        message: "Total USER count fetched successfully",
+        totalCount: count,
+      });
+    } catch (error) {
+      console.error("Error fetching USER count:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+
+  ///RestaurantCount
+
+  export const getRestaurantCount = async (req, res) => {
+    try {
+      const count = await Restaurant.countDocuments(); // count all documents in the collection
+  
+      return res.status(200).json({
+        message: "Total Restaurant count fetched successfully",
+        totalCount: count,
+      });
+    } catch (error) {
+      console.error("Error fetching Restaurant count:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+
+  // auth check
+
+
+  export const checkAdmin=async(req,res,next)=>{
+    
+    const admin = req.admin.id;
+  
+    console.log(req);
+    
+    if(!admin){
+        return res.status(401).json({success:false,message:'Admin not authenticated'})
+        }
+    
+  res.json({success:true,message:'Admin is authenticated'})
+  
+    
+            };

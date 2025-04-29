@@ -6,6 +6,7 @@ import ProductRouter from './ProductRouter.js';
 import ReviewRouter from './ReviewRouter.js';
 import CartRouter from './CartRouter.js';
 import AddressRouter from './AddressRouter.js';
+import PaymentRouter from './PaymentRouter.js';
 
 
 const v1Router = express.Router();
@@ -23,6 +24,8 @@ v1Router.use('/Review',ReviewRouter)
 v1Router.use('/Cart',CartRouter)
 
 v1Router.use('/Address',AddressRouter)
+
+v1Router.use('/payment',PaymentRouter)
 
 
 
