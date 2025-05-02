@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Admin from "../Models/AdminModel.js";
-import User from "../models/userModel.js";
+import User from "../models/UserModel.js";
 import Product from "../Models/ProductModel.js";
 import { cloudinaryInstance } from "../Config/cloudinary.js";
 import { upload } from '../Config/multer.js';
