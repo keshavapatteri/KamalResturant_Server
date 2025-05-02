@@ -1,13 +1,14 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Admin from "../Models/AdminModel.js";
-import User from "../Models/UserModel.js";
+
 import Product from "../Models/ProductModel.js";
 import { cloudinaryInstance } from "../Config/cloudinary.js";
 import { upload } from '../Config/multer.js';
 import Restaurant from "../Models/RestaurantModel.js";
 import Review from "../Models/ReviewModel.js";
 import { Category } from "../Models/CategoryModel.js";
+import User from "../Models/UserModel.js";
 
 
 
