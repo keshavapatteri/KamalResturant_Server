@@ -16,8 +16,11 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 app.use(
-  cors({origin:'http://localhost:5173',  credentials: true})
+  cors({origin:'https://dsfsdg.vercel.app',  credentials: true})
   );
+
+
+// http://localhost:5173
 app.use(cookieParser());
 connectdb();
 
