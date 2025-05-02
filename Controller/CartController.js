@@ -135,44 +135,78 @@ export const updateCartItem = async (req, res) => {
 };
 
 // Remove item from cart
+// export const removeCartItem = async (req, res) => {
+//   const { productId } = req.body;
+//   const userId = req.user.id; // assuming you're using JWT middleware to get user
+// console.log(`products`,req.body);
+// console.log(userId);
+
+//   try {
+//     const cart = await Cart.findOne({ userId });
+//     if (!cart) {
+//       return res.status(404).json({ message: "Cart not found!" });
+//     }
+
+//     const itemIndex = cart.Product.findIndex(
+//       (item) => item.ProductId.toString() === productId
+//     );
+
+//     if (itemIndex === -1) {
+//       return res.status(404).json({ message: "Product not found in cart!" });
+//     }
+
+//     const removedItem = cart.Product[itemIndex];
+
+//     // Subtract totalCost of removed item from cart total
+//     cart.totalPrice -= removedItem.totalCost;
+
+//     // Remove the item from the Product array
+//     cart.Product.splice(itemIndex, 1);
+
+//     // If the cart is now empty, delete it completely
+//     if (cart.Product.length === 0) {
+//       await Cart.deleteOne({ userId });
+//       return res.status(200).json({ message: "Cart is empty now!" });
+//     } else {
+//       await cart.save();
+//       res.status(200).json(cart);
+//     }
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const removeCartItem = async (req, res) => {
   const { productId } = req.body;
-  const userId = req.user.id; // assuming you're using JWT middleware to get user
+  const userId = req.user.id;
+console.log(`productId`,productId);
 
   try {
-    const cart = await Cart.findOne({ userId });
+    // Find the cart for the user
+    let cart = await Cart.findOne({ userId });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found!" });
+      return res.status(404).json({ message: "Cart not found" });
     }
 
-    const itemIndex = cart.Product.findIndex(
-      (item) => item.ProductId.toString() === productId
-    );
+    // Filter out the product to be removed
+    cart.Product = cart.Product.filter(item => item.ProductId.toString() !== productId);
 
-    if (itemIndex === -1) {
-      return res.status(404).json({ message: "Product not found in cart!" });
-    }
+    // Recalculate total price
+    cart.totalPrice = cart.Product.reduce((total, item) => total + item.totalCost, 0);
 
-    const removedItem = cart.Product[itemIndex];
+    // Save updated cart
+    await cart.save();
 
-    // Subtract totalCost of removed item from cart total
-    cart.totalPrice -= removedItem.totalCost;
-
-    // Remove the item from the Product array
-    cart.Product.splice(itemIndex, 1);
-
-    // If the cart is now empty, delete it completely
-    if (cart.Product.length === 0) {
-      await Cart.deleteOne({ userId });
-      return res.status(200).json({ message: "Cart is empty now!" });
-    } else {
-      await cart.save();
-      res.status(200).json(cart);
-    }
+    res.status(200).json({ message: "Item removed successfully", cart });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error removing cart item:", error);
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
+
+
+
+
 
 // Clear the cart
 export const clearCart = async (req, res) => {

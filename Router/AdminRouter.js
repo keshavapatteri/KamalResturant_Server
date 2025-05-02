@@ -71,7 +71,7 @@ AdminRouter.delete("/ByReview/:id",verifyAdminToken, deletesReview);
 AdminRouter.post('/addCategories',verifyAdminToken, upload.single('image'), addCategory)
 
 
-AdminRouter.get("/allCategories",verifyAdminToken, AllCategories);
+AdminRouter.get("/allCategories", AllCategories);
 
 AdminRouter.delete("/Category/:id",verifyAdminToken, deleteCategory);
 

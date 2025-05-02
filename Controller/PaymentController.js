@@ -4,8 +4,9 @@ import { Payment } from '../Models/PaymentModel.js';
 import Cart from '../Models/CartModel.js';
 
 const razorpayInstance = new Razorpay({
-  key_id: 'rzp_test_huknLLPXfL1Laz',
-  key_secret: 'ICOVsaSUKx76I4WxHUD4l',
+  key_id: 'rzp_test_Yh0fPwTheqXsx5',
+  key_secret: 'yWdy6YEhYSQnoetu0ISm2dDV',
+
 });
 
 //latest proc
