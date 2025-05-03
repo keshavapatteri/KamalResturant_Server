@@ -60,10 +60,11 @@ app.use(cookieParser());
 // Enable CORS
 app.use(
   cors({
-    origin: "https://dsfsdg.vercel.app", // Replace with your actual frontend domain
+    origin: "https://spicekera.vercel.app", 
     credentials: true,
   })
 );
+
 
 // Favicon fix: avoid 404 errors in logs
 app.get("/favicon.ico", (req, res) => res.status(204).end());
