@@ -1,40 +1,84 @@
-import express from "express";
+// import express from "express";
 
+// import dotenv from "dotenv";
+// import v1Router from "./Router/index.js";
+// import connectdb from "./Config/Db.js";
+// import cors from "cors";
+// import cookieParser from 'cookie-parser';
+
+// // Load environment variables
+// dotenv.config();
+
+
+// const app = express();
+// app.use(express.json());
+// app.get('/', (req, res) => {
+//   res.send('Hello World');
+// });
+// app.use(
+//   cors({origin:'https://dsfsdg.vercel.app',  credentials: true})
+//   );
+
+
+// // http://localhost:5173
+// app.use(cookieParser());
+// connectdb();
+
+// app.use(express.json());
+
+// // Define routes after middleware
+//  app.use("/v1",v1Router);
+
+
+
+
+// // Start the server
+// const PORT = process.env.PORT || 3005;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
+
+import express from "express";
 import dotenv from "dotenv";
 import v1Router from "./Router/index.js";
 import connectdb from "./Config/Db.js";
 import cors from "cors";
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 
 // Load environment variables
 dotenv.config();
 
-
 const app = express();
-app.use(express.json());
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
-app.use(
-  cors({origin:'https://dsfsdg.vercel.app',  credentials: true})
-  );
 
-
-// http://localhost:5173
-app.use(cookieParser());
+// Connect to database
 connectdb();
 
+// Middleware
 app.use(express.json());
+app.use(cookieParser());
 
-// Define routes after middleware
- app.use("/v1",v1Router);
+// Enable CORS
+app.use(
+  cors({
+    origin: "https://dsfsdg.vercel.app", // Replace with your actual frontend domain
+    credentials: true,
+  })
+);
 
+// Favicon fix: avoid 404 errors in logs
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+app.get("/favicon.png", (req, res) => res.status(204).end());
 
+// Test route
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
+// API Routes
+app.use("/v1", v1Router);
 
 // Start the server
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
