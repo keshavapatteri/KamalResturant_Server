@@ -60,7 +60,7 @@ app.use(cookieParser());
 // Enable CORS
 app.use(
   cors({
-    origin: "https://spicekera.vercel.app", 
+    origin: "https://spicekera.vercel.app", // Replace with your actual frontend domain
     credentials: true,
   })
 );
