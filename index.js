@@ -49,7 +49,12 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 
 const app = express();
-
+app.use(
+  cors({
+    origin: "https://spicekera.vercel.app", // Replace with your actual frontend domain
+    credentials: true,
+  })
+);
 // Connect to database
 connectdb();
 
@@ -58,12 +63,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Enable CORS
-app.use(
-  cors({
-    origin: "https://spicekera.vercel.app", // Replace with your actual frontend domain
-    credentials: true,
-  })
-);
+
 
 
 // Favicon fix: avoid 404 errors in logs
