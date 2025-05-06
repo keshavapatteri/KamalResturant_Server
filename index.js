@@ -20,7 +20,7 @@
 //   );
 
 
-// // http://localhost:5173
+// // 
 // app.use(cookieParser());
 // connectdb();
 
@@ -51,10 +51,13 @@ dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: "https://spicekera.vercel.app", // Replace with your actual frontend domain
+    origin: "http://localhost:5173", // Replace with your actual frontend domain
     credentials: true,
   })
 );
+
+// https://spicekera.vercel.app
+
 // Connect to database
 connectdb();
 

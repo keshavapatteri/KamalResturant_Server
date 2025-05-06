@@ -119,11 +119,15 @@ if(!passwordcompare) return res.status(400).json({msg:"Invalid credentials"});
 
 export const logoutUser = async (req, res) => {
   try {
-    // Clear the token (if using cookies)
+   
     res.cookie("Usertoken", "", {
       httpOnly: true,
-      expires: new Date(0), // Expire the token immediately
+      sameSite: "None",
+      secure: true,
+      expires: new Date(0), 
     });
+
+
 
     res.status(200).json({ message: "User logged out successfully" });
   } catch (error) {
